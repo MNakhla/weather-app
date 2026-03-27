@@ -14,7 +14,8 @@
       class="text-subtitle-1 font-weight-medium px-6 text-gray-500 transition-all font-inter"
       selected-class="text-black font-weight-bold underline-offset-4 !border-b-red-500 !border-b-2"
     >
-      {{ city.city_name }}
+    <span>{{ city.city_name }}</span>
+    <v-icon icon="mdi-close" color="red" @click.stop="removeCity(city.city_id)" />
     </v-tab>
   </v-tabs>
 </template>
@@ -24,12 +25,13 @@ import { computed } from 'vue'
 import type { City } from '../types/weather'
 
 interface Props {
-  cities: City[]
-  modelValue: number
+  cities: City[]|null
+  modelValue: number|null
+  removeCity: (cityId: number) => void
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'remove-city'])
 
 const activeTabId = computed({
   get: () => props.modelValue,

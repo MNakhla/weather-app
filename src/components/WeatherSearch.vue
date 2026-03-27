@@ -2,8 +2,21 @@
   <div class="bg-[#106EBE] px-4 pt-4 pb-3 shadow-md w-full">
     <v-container max-width="900" class="mx-auto px-0 py-0">
       <v-row no-gutters>
-        <v-col cols="6" class="flex text-left items-center">
+        <v-col cols="6" class="flex text-left items-center justify-between">
           <h1 class="text-[26px] font-medium tracking-wide text-white">Simple Weather</h1>
+          <div class="flex justify-center items-center gap-2">
+            <span :class="['text-sm font-bold', !isCelsius ? 'text-white' : 'text-black']">°F</span>
+            <v-switch
+              :model-value="isCelsius"
+              @update:modelValue="emit('toggle-celsius')"
+              color="blue-darken-3"
+              hide-details
+              inset
+              density="compact"
+              class="unit-switch"
+            ></v-switch>
+            <span :class="['text-sm font-bold', isCelsius ? 'text-white' : 'text-black']">°C</span>
+          </div>
         </v-col>
         <v-col cols="6" class="flex justify-end items-center pr-2 gap-2">
           <v-btn
@@ -32,6 +45,7 @@
             class="custom-search"
             :loading="loading"
             return-object
+            @update:model-value="handleSearch"
             @click:append-inner="handleSearch"
             @keyup.enter="handleSearch"
             :menu-props="{ maxHeight: 300, contentClass: 'city-dropdown-menu' }"
@@ -59,17 +73,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { parseCitiesCsv } from '../utils/csvParser'
 import type { City } from '../types/weather'
 
 const props = defineProps<{
   modelValue: City | null
+  isCelsius: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: City | null): void
+  (e: 'toggle-celsius'): void
 }>()
 
 const cities = ref<City[]>([])
@@ -110,12 +126,13 @@ watch(() => props.modelValue, (newVal) => {
   }
 })
 
-const handleSearch = () => {
+const handleSearch = async () => {
   const cityToSelect = internalSelection.value || (filteredCities.value.length > 0 ? filteredCities.value[0] : null)
   
   if (cityToSelect) {
     emit('update:modelValue', cityToSelect)
     
+    await nextTick()
     internalSelection.value = null
     searchInternal.value = ''
   }
