@@ -38,7 +38,7 @@
       </div>
 
       <div class="fixed bottom-0 left-0 w-full bg-[#106EBE] py-1 pr-4 text-right text-white text-xs opacity-90 font-medium z-10">
-        Last updated on {{ lastUpdatedText || '—' }}
+        Last updated on {{ lastUpdatedText || '—' }}.
       </div>
     </v-container>
   </div>
