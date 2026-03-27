@@ -31,7 +31,7 @@ function formatUpdated(date: Date) {
   })
 }
 
-export function useWeather(city: Ref<City | null>) {
+export function useWeather(city: Ref<City | null>, isCelsius: Ref<boolean>) {
   const weatherQuery = useQuery({
     queryKey: computed(() => ['weather', city.value?.lat, city.value?.lon]),
     queryFn: () => {
@@ -44,13 +44,20 @@ export function useWeather(city: Ref<City | null>) {
     retry: 1
   })
 
+  function formatTemp(temp: number) {
+    if (isCelsius.value) {
+      return Math.round(temp)
+    }
+    return Math.round((temp * 9) / 5 + 32)
+  }
+
   const hourlyForecast = computed((): HourlyForecastItem[] => {
     const data = weatherQuery.data.value
     if (!data) return []
 
     return data.list.slice(0, 12).map((item) => ({
       time: formatHour(item.dt),
-      temp: Math.round(item.main.temp),
+      temp: formatTemp(item.main.temp),
       humidity: item.main.humidity,
       icon: `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`
     }))
@@ -95,12 +102,16 @@ export function useWeather(city: Ref<City | null>) {
       }
     }
 
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
     return Array.from(grouped.entries())
+      .filter(([date]) => date > today)
       .slice(0, 5)
       .map(([date, value]) => ({
         date: formatDay(date),
-        high: Math.round(Math.max(...value.temps)),
-        low: Math.round(Math.min(...value.temps)),
+        high: formatTemp(Math.max(...value.temps)),
+        low: formatTemp(Math.min(...value.temps)),
         icon: `https://openweathermap.org/img/wn/${value.icon}@2x.png`,
         comment: value.comment
       }))
